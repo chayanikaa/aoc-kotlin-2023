@@ -2,21 +2,19 @@ import kotlin.math.pow
 
 data class Card(val name: String, val numbers: Set<Int>, val winningNumbers: Set<Int>) {
     fun calculateNumberOfWinningCards(): Int {
-        var numberOfWinningCards = 0
-        for (number in numbers) {
-            if (number in winningNumbers) {
-                numberOfWinningCards += 1
+        return numbers.fold(0) { acc, number ->
+            when (number in winningNumbers) {
+                true -> acc + 1
+                false -> acc
             }
         }
-        return numberOfWinningCards
     }
 
     fun calculatePoints(): Int {
-        val points = calculateNumberOfWinningCards()
-        if (points == 0) {
-            return 0
+        return when (val points = calculateNumberOfWinningCards()) {
+            0 -> 0
+            else -> 2.0.pow((points - 1).toDouble()).toInt()
         }
-        return 2.0.pow((points - 1).toDouble()).toInt()
     }
 }
 
@@ -47,7 +45,7 @@ fun main() {
                 cardsWithMultiplier[j].multiplier += multiplier
             }
         }
-        return cardsWithMultiplier.map { it.multiplier }.sum()
+        return cardsWithMultiplier.sumOf { it.multiplier }
     }
 
     val testInput = readInputLines("Day04_test")
