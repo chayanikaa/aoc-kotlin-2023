@@ -30,18 +30,14 @@ fun main() {
         return Card(cardName, cardNumbers.toSet(), winningNumbers.toSet())
     }
 
-    fun part1(inputLines: List<String>): Int {
-        val cards = inputLines.map(::parseInputLine)
-        return cards.map(Card::calculatePoints).sum()
-    }
+    fun part1(inputLines: List<String>) = inputLines.map(::parseInputLine).sumOf(Card::calculatePoints)
 
     fun part2(inputLines: List<String>): Int {
-        val cards = inputLines.map(::parseInputLine)
-        val cardsWithMultiplier = cards.map(::CardWithMultiplier)
+        val cardsWithMultiplier = inputLines.map(::parseInputLine).map(::CardWithMultiplier)
         cardsWithMultiplier.forEachIndexed() { index, cardWithMultiplier ->
             val (card, multiplier) = cardWithMultiplier
             val numberOfWinningCards = card.calculateNumberOfWinningCards()
-            for (j in index + 1..index + numberOfWinningCards) {
+            for (j in index + 1..(index + numberOfWinningCards).coerceAtMost(cardsWithMultiplier.size - 1)) {
                 cardsWithMultiplier[j].multiplier += multiplier
             }
         }

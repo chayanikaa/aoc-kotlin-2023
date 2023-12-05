@@ -2,11 +2,17 @@ import java.math.BigInteger
 import java.security.MessageDigest
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
+import kotlin.io.path.readText
 
 /**
  * Reads lines from the given input txt file.
  */
 fun readInputLines(name: String) = Path("inputs/$name.txt").readLines()
+
+/**
+ * Reads from the given input txt file.
+ */
+fun readInput(name: String) = Path("inputs/$name.txt").readText()
 
 /**
  * Converts string to md5 hash.
