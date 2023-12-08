@@ -17,6 +17,7 @@ fun main() {
         }
         return processedInput.filter(Char::isDigit).map(Char::digitToInt)
     }
+
     fun part1(input: List<String>): Int {
         val digits = input.map { it.filter(Char::isDigit) }
         val numbers = digits.map{ it.first().digitToInt() * 10 + it.last().digitToInt() }
