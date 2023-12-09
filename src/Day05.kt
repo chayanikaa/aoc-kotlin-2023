@@ -61,7 +61,6 @@ fun main() {
             destinationMapped
         }
 
-        // locations.println()
         return locations.min()
     }
 

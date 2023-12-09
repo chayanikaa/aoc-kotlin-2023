@@ -21,6 +21,23 @@ fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteA
     .toString(16)
     .padStart(32, '0')
 
+fun gcd(a: Long, b: Long): Long {
+    if (b == 0L)
+        return a;
+    return gcd(b, a % b);
+}
+
+// Returns LCM of array elements
+fun lcm(arr: List<Long>): Long {
+    var ans = arr[0];
+
+    for (num in arr)
+        ans = (((num * ans)) /
+                (gcd(num, ans)));
+
+    return ans;
+}
+
 /**
  * The cleaner shorthand for printing output.
  */
