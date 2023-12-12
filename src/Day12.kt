@@ -1,78 +1,5 @@
 import javax.naming.PartialResultException
 
-private fun satisfiesPartialContiguousBrokenCondition(inputLine: String, brokenGroups: List<Int>): Boolean {
-    var toMatchI = 0
-    var cumulativeBrokenCount = 0
-    for (index in inputLine.indices) {
-        val char = inputLine[index]
-        when (char) {
-            '#' -> {
-                cumulativeBrokenCount++
-                if (toMatchI < brokenGroups.size && cumulativeBrokenCount > brokenGroups[toMatchI]) {
-                    return false
-                }
-            }
-
-            '.' -> {
-                if (toMatchI < brokenGroups.size && cumulativeBrokenCount > 0 && cumulativeBrokenCount != brokenGroups[toMatchI]) {
-                    return false
-                } else if (toMatchI < brokenGroups.size && cumulativeBrokenCount == brokenGroups[toMatchI]) {
-                    toMatchI++
-                }
-                cumulativeBrokenCount = 0
-            }
-        }
-    }
-    return true
-}
-
-private fun getMemoCheckPartialMatchFunction(brokenGroups: List<Int>): (String) -> Boolean {
-    val resultMap = mapOf<String, Boolean>()
-    return fun(inputLine: String): Boolean {
-        return if (resultMap[inputLine] != null) {
-            resultMap[inputLine]!!
-        } else satisfiesPartialContiguousBrokenCondition(inputLine, brokenGroups)
-    }
-}
-
-private fun satisfiesFullContiguousBrokenCondition(inputLine: String, brokenGroups: List<Int>): Boolean {
-    var toMatchI = 0
-    var cumulativeBrokenCount = 0
-    for (index in 0..1) {
-        val char = inputLine[index]
-
-        when (char) {
-            '#' -> {
-                cumulativeBrokenCount++
-                if (toMatchI == brokenGroups.size || cumulativeBrokenCount > brokenGroups[toMatchI]) {
-                    return false
-                }
-            }
-
-            '.' -> {
-                // println("matched . index $index $inputLine cumulativeBrokenCount $cumulativeBrokenCount toMatchI $toMatchI")
-                if (toMatchI < brokenGroups.size && cumulativeBrokenCount > 0 && cumulativeBrokenCount != brokenGroups[toMatchI]) {
-                    return false
-                } else if (toMatchI < brokenGroups.size && cumulativeBrokenCount == brokenGroups[toMatchI]) {
-                    toMatchI++
-                }
-                cumulativeBrokenCount = 0
-            }
-        }
-    }
-    if (toMatchI < brokenGroups.size && cumulativeBrokenCount == brokenGroups[toMatchI]) {
-        cumulativeBrokenCount = 0
-        toMatchI++
-    }
-    return toMatchI == brokenGroups.size
-}
-
-private fun replaceCharAtIndex(input: String, index: Int, replaceChar: Char): String {
-    val chars = input.toMutableList()
-    chars[index] = replaceChar
-    return chars.joinToString(separator = "")
-}
-
 data class CacheKey(val inputLine: String, val brokenGroupsToFind: List<Int>, val cumulativeBrokenCount: Int)
 
 // this will be recursive
@@ -80,9 +7,6 @@ private fun findPossibilities(
     inputLine: String,
     brokenGroups: List<Int>,
     cacheMap: MutableMap<CacheKey, Long> = mutableMapOf(),
-    partialResultCheckFunction: (String) -> Boolean = getMemoCheckPartialMatchFunction(
-        brokenGroups
-    ),
     trailingCumulativeCount: Int = 0
 ): Long {
     if (brokenGroups.isEmpty() && !inputLine.contains('#') && trailingCumulativeCount == 0) {
@@ -97,7 +21,7 @@ private fun findPossibilities(
     var updatedBrokenGroups = brokenGroups
     for (index in inputLine.indices) {
         if (updatedBrokenGroups.isEmpty()) {
-            return findPossibilities(inputLine.substring(index), updatedBrokenGroups, cacheMap, partialResultCheckFunction, cumulativeBrokenCount)
+            return findPossibilities(inputLine.substring(index), updatedBrokenGroups, cacheMap, cumulativeBrokenCount)
         }
         when (inputLine[index]) {
             '.' -> {
@@ -121,7 +45,7 @@ private fun findPossibilities(
                     "." + inputLine.substring(index+1)
                 )
                 return newStrings.sumOf {
-                    val result = findPossibilities(it, updatedBrokenGroups, cacheMap, partialResultCheckFunction, cumulativeBrokenCount)
+                    val result = findPossibilities(it, updatedBrokenGroups, cacheMap, cumulativeBrokenCount)
                     cacheMap[CacheKey(it, updatedBrokenGroups, cumulativeBrokenCount)] = result
                     result
                 }
@@ -145,7 +69,6 @@ private fun parseInput(input: String): Pair<String, List<Int>> {
 private fun part1(inputLines: List<String>): Long {
     val parsed = inputLines.map { parseInput(it) }
     val possibilities = parsed.map { findPossibilities(it.first, it.second ) }
-//    possibilities.forEach(::println)
     return possibilities.sum()
 }
 
@@ -156,15 +79,7 @@ private fun part2(inputLines: List<String>): Long {
         val brokenGroupsStringRepeated = MutableList(5) { brokenGroupsString }.joinToString(",")
         "$gearStringRepeated $brokenGroupsStringRepeated"
     }
-    // return 0L
-
-    val parsed = processedInput.map { parseInput(it) }
-    val possibilities = parsed.map { it ->
-        val result = findPossibilities(it.first, it.second)
-        // println("processed ${it.first} $result")
-        result
-    }
-    return possibilities.sum()
+    return part1(processedInput)
 }
 
 fun main() {
