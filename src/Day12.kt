@@ -1,3 +1,5 @@
+import javax.naming.PartialResultException
+
 private fun satisfiesPartialContiguousBrokenCondition(inputLine: String, brokenGroups: List<Int>): Boolean {
     var toMatchI = 0
     var cumulativeBrokenCount = 0
@@ -6,19 +8,32 @@ private fun satisfiesPartialContiguousBrokenCondition(inputLine: String, brokenG
         when (char) {
             '#' -> {
                 cumulativeBrokenCount++
-                if (cumulativeBrokenCount > brokenGroups[toMatchI]) {
+                if (toMatchI < brokenGroups.size && cumulativeBrokenCount > brokenGroups[toMatchI]) {
                     return false
                 }
             }
+
             '.' -> {
-                if (cumulativeBrokenCount == brokenGroups[toMatchI]) {
-                    cumulativeBrokenCount = 0
+                if (toMatchI < brokenGroups.size && cumulativeBrokenCount > 0 && cumulativeBrokenCount != brokenGroups[toMatchI]) {
+                    return false
+                } else if (toMatchI < brokenGroups.size && cumulativeBrokenCount == brokenGroups[toMatchI]) {
                     toMatchI++
                 }
+                cumulativeBrokenCount = 0
             }
         }
     }
     return true
+}
+
+private fun getMemoCheckPartialMatchFunction(brokenGroups: List<Int>): (String) -> Boolean {
+    val resultMap = mapOf<String, Boolean>()
+    return fun(inputLine: String): Boolean {
+        // println("resultMap[inputLine] ${resultMap[inputLine]}")
+        return if (resultMap[inputLine] != null) {
+            resultMap[inputLine]!!
+        } else satisfiesPartialContiguousBrokenCondition(inputLine, brokenGroups)
+    }
 }
 
 private fun satisfiesFullContiguousBrokenCondition(inputLine: String, brokenGroups: List<Int>): Boolean {
@@ -34,6 +49,7 @@ private fun satisfiesFullContiguousBrokenCondition(inputLine: String, brokenGrou
                     return false
                 }
             }
+
             '.' -> {
                 // println("matched . index $index $inputLine cumulativeBrokenCount $cumulativeBrokenCount toMatchI $toMatchI")
                 if (toMatchI < brokenGroups.size && cumulativeBrokenCount > 0 && cumulativeBrokenCount != brokenGroups[toMatchI]) {
@@ -60,11 +76,22 @@ private fun replaceCharAtIndex(input: String, index: Int, replaceChar: Char): St
 }
 
 // this will be recursive
-private fun findPossibilities(inputLine: String, brokenGroups: List<Int>, index: Int): Long {
-   // println("inputLine $inputLine index $index")
+private fun findPossibilities(
+    inputLine: String,
+    brokenGroups: List<Int>,
+    index: Int,
+    cacheMap: MutableMap<String, Int> = mutableMapOf(),
+    partialResultCheckFunction: (String) -> Boolean = getMemoCheckPartialMatchFunction(
+        brokenGroups
+    ),
+): Int {
+    // println("inputLine $inputLine index $index")
+    if (cacheMap[inputLine] != null) {
+        return cacheMap[inputLine]!!
+    }
     if (index == inputLine.length) {
         if (satisfiesFullContiguousBrokenCondition(inputLine, brokenGroups)) {
-            //println("satisfiesFullContiguousBrokenCondition $inputLine $brokenGroups")
+            // println("satisfiesFullContiguousBrokenCondition $inputLine $brokenGroups")
             return 1
         }
         // println("No satisfiesFullContiguousBrokenCondition $inputLine $brokenGroups")
@@ -72,35 +99,58 @@ private fun findPossibilities(inputLine: String, brokenGroups: List<Int>, index:
     }
     // for each ? char, sub # and .
     // and find possibilities with that
-    return when(inputLine[index]) {
-        '#' -> findPossibilities(inputLine, brokenGroups, index + 1)
-        '.' -> findPossibilities(inputLine, brokenGroups, index + 1)
+    val result = when (inputLine[index]) {
         '?' -> {
             val newStrings = listOf(
                 replaceCharAtIndex(inputLine, index, '#'),
                 replaceCharAtIndex(inputLine, index, '.')
             )
-            newStrings.sumOf { findPossibilities(it, brokenGroups, index + 1) }
+            newStrings.sumOf { findPossibilities(it, brokenGroups, index + 1, cacheMap, partialResultCheckFunction) }
         }
+
         else -> {
-            println("Does not match any condition")
-            return 0
-            }
+            if (partialResultCheckFunction(inputLine.substring(0, index + 1))) {
+                findPossibilities(inputLine, brokenGroups, index + 1, cacheMap, partialResultCheckFunction)
+            } else 0
         }
+    }
+    if (cacheMap[inputLine] == null) {
+        cacheMap[inputLine] = result
+    }
+    return result
 }
 
 private fun parseInput(input: String): Pair<String, List<Int>> {
     val (gears, brokenGearsString) = input.split(' ')
     return Pair(gears, brokenGearsString.split(',').map(String::toInt))
 }
-private fun part1(inputLines: List<String>): Long {
+
+private fun part1(inputLines: List<String>): Int {
     val parsed = inputLines.map { parseInput(it) }
-    val possibilities = parsed.map{ findPossibilities(it.first, it.second, 0)}
-    val numPossibilities = possibilities.sum()
-    return numPossibilities
+    val possibilities = parsed.map { findPossibilities(it.first, it.second, 0) }
+    return possibilities.sum()
+}
+
+private fun part2(inputLines: List<String>): Int {
+    val processedInput = inputLines.map {
+        val (gearsString, brokenGroupsString) = it.split(' ')
+        val gearStringRepeated = MutableList(5) { gearsString }.joinToString("?")
+        val brokenGroupsStringRepeated = MutableList(5) { brokenGroupsString }.joinToString(",")
+        "$gearStringRepeated $brokenGroupsStringRepeated"
+    }
+    // return 0L
+
+    val parsed = processedInput.map { parseInput(it) }
+    val possibilities = parsed.map { it ->
+        val result = findPossibilities(it.first, it.second, 0)
+        println("processed ${it.first} $result")
+        result
+    }
+    return possibilities.sum()
 }
 
 fun main() {
     val testInput = readInputLines("Day12_test")
-    println("testInput part1 ${part1(testInput)}")
+//     println("testInput part1 ${part1(testInput)}")
+    println("testInput part2 ${part2(testInput)}")
 }
