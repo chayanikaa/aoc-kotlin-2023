@@ -60,15 +60,15 @@ private fun replaceCharAtIndex(input: String, index: Int, replaceChar: Char): St
 }
 
 // this will be recursive
-private fun findPossibilities(inputLine: String, brokenGroups: List<Int>, index: Int): List<String> {
+private fun findPossibilities(inputLine: String, brokenGroups: List<Int>, index: Int): Long {
    // println("inputLine $inputLine index $index")
     if (index == inputLine.length) {
         if (satisfiesFullContiguousBrokenCondition(inputLine, brokenGroups)) {
             //println("satisfiesFullContiguousBrokenCondition $inputLine $brokenGroups")
-            return listOf(inputLine)
+            return 1
         }
         // println("No satisfiesFullContiguousBrokenCondition $inputLine $brokenGroups")
-        return listOf()
+        return 0
     }
     // for each ? char, sub # and .
     // and find possibilities with that
@@ -80,11 +80,11 @@ private fun findPossibilities(inputLine: String, brokenGroups: List<Int>, index:
                 replaceCharAtIndex(inputLine, index, '#'),
                 replaceCharAtIndex(inputLine, index, '.')
             )
-            newStrings.flatMap { findPossibilities(it, brokenGroups, index + 1) }
+            newStrings.sumOf { findPossibilities(it, brokenGroups, index + 1) }
         }
         else -> {
             println("Does not match any condition")
-            return listOf()
+            return 0
             }
         }
 }
@@ -93,11 +93,11 @@ private fun parseInput(input: String): Pair<String, List<Int>> {
     val (gears, brokenGearsString) = input.split(' ')
     return Pair(gears, brokenGearsString.split(',').map(String::toInt))
 }
-private fun part1(inputLines: List<String>): Int {
+private fun part1(inputLines: List<String>): Long {
     val parsed = inputLines.map { parseInput(it) }
     val possibilities = parsed.map{ findPossibilities(it.first, it.second, 0)}
-    val numPossibilities = possibilities.map { it.distinct().size }
-    return numPossibilities.sum()
+    val numPossibilities = possibilities.sum()
+    return numPossibilities
 }
 
 fun main() {
