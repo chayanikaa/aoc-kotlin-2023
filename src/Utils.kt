@@ -4,6 +4,8 @@ import kotlin.io.path.Path
 import kotlin.io.path.readLines
 import kotlin.io.path.readText
 
+data class Coordinate(val x: Int, val y: Int)
+
 /**
  * Reads lines from the given input txt file.
  */

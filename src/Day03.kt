@@ -1,4 +1,4 @@
-fun getSurroundingChars(lineIndex: Int, matchResult: MatchResult, inputLines: List<String>): String {
+private fun getSurroundingChars(lineIndex: Int, matchResult: MatchResult, inputLines: List<String>): String {
     val (start, last) = matchResult.range.first to matchResult.range.last
     val lineLength = inputLines[lineIndex].length
 
@@ -18,7 +18,7 @@ fun getSurroundingChars(lineIndex: Int, matchResult: MatchResult, inputLines: Li
     }
 
 }
-fun isPartNumber(match: Pair<Int, MatchResult>, inputLines: List<String>): Boolean {
+private fun isPartNumber(match: Pair<Int, MatchResult>, inputLines: List<String>): Boolean {
     val (lineIndex, matchResult) = match
     val (start, last) = matchResult.range.first to matchResult.range.last
     val lineLength = inputLines[lineIndex].length
@@ -29,9 +29,7 @@ fun isPartNumber(match: Pair<Int, MatchResult>, inputLines: List<String>): Boole
     return Regex("[^.0-9]").containsMatchIn(surroundingChars)
 }
 
-data class Coordinate(val x: Int, val y: Int)
-
-data class StarNumber(val lineIndex: Int, val matchResult: MatchResult, val starCoordinates: List<Coordinate>) {
+private data class StarNumber(val lineIndex: Int, val matchResult: MatchResult, val starCoordinates: List<Coordinate>) {
 
     override fun toString(): String {
         return "StarNumber(lineIndex=$lineIndex, matchResultValue=${matchResult.value}, matchResultRange=${matchResult.range}, starCoordinates=$starCoordinates)"
@@ -39,7 +37,7 @@ data class StarNumber(val lineIndex: Int, val matchResult: MatchResult, val star
 
 }
 
-fun getGearPair(match: Pair<Int, MatchResult>, inputLines: List<String>): StarNumber {
+private fun getGearPair(match: Pair<Int, MatchResult>, inputLines: List<String>): StarNumber {
     val (lineIndex, matchResult) = match
     val (start, last) = matchResult.range.first to matchResult.range.last
     val lineLength = inputLines[lineIndex].length
@@ -76,7 +74,7 @@ fun getGearPair(match: Pair<Int, MatchResult>, inputLines: List<String>): StarNu
     return StarNumber(lineIndex, matchResult, coordsList)
 }
 
-fun part2(inputLines: List<String>): Int {
+private fun part2(inputLines: List<String>): Int {
     val starNumbers = inputLines.asSequence()
         .mapIndexed { index, line -> Regex("[0-9]+").findAll(line).map { index to it } }
         .flatten()
@@ -97,7 +95,7 @@ fun part2(inputLines: List<String>): Int {
     }
 }
 
-fun part1(inputLines: List<String>): Int {
+private fun part1(inputLines: List<String>): Int {
     return inputLines.asSequence()
         .mapIndexed { index, line -> Regex("[0-9]+").findAll(line).map { index to it } }
         .flatten()
