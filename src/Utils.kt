@@ -29,6 +29,12 @@ fun gcd(a: Long, b: Long): Long {
     return gcd(b, a % b);
 }
 
+fun replaceCharAt(str: String, index: Int, replaceWith: Char): String {
+    val chars = str.toMutableList()
+    chars[index] = replaceWith
+    return chars.joinToString(separator = "")
+}
+
 // Returns LCM of array elements
 fun lcm(arr: List<Long>): Long {
     var ans = arr[0];
